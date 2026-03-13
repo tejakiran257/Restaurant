@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CourtBite — Smart Food Court Ordering</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+:root{--bg:#0c0c0c;--surface:#151515;--surface2:#1e1e1e;--border:#272727;--accent:#ff6b2b;--accent2:#ffb347;--green:#2dce6c;--blue:#4f8ef7;--red:#ff4757;--text:#f0ece4;--text2:#8a857d;--text3:#4a4540;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden;}
+h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}
+@keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes scanLine{from{top:10%}to{top:90%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,107,43,0.3)}50%{box-shadow:0 0 0 8px rgba(255,107,43,0)}}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(255,107,43,0.1),transparent 70%);top:-10%;right:-5%;animation:pulse 8s ease-in-out infinite;}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(79,142,247,0.07),transparent 70%);bottom:10%;left:-10%;animation:pulse 10s 2s ease-in-out infinite;}
+.orb3{width:300px;height:300px;background:radial-gradient(circle,rgba(45,206,108,0.05),transparent 70%);top:40%;left:40%;animation:pulse 12s 4s ease-in-out infinite;}
+.section-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:block;}
+.btn-primary{background:var(--accent);color:white;padding:13px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary:hover{background:#ff8c52;transform:translateY(-1px);}
+.btn-secondary{background:transparent;color:var(--text);padding:13px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{border-color:var(--text3);background:var(--surface);}
+.search-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px 10px 38px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--text3);}
+.cat-pill{padding:8px 16px;border-radius:100px;font-size:13px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.cat-pill.active{background:var(--accent);border-color:var(--accent);color:white;}
+.qty-control{display:flex;align-items:center;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.qty-btn{width:30px;height:30px;background:var(--surface2);border:none;color:var(--text);font-size:16px;cursor:pointer;transition:background 0.15s;font-weight:600;}
+.qty-btn:hover{background:var(--accent);color:white;}
+.qty-num{min-width:30px;text-align:center;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
+.service-opt{padding:18px;border-radius:12px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all 0.2s;background:var(--surface);}
+.service-opt.sel{border-color:var(--accent);background:rgba(255,107,43,0.06);}
+.pay-method-opt{padding:14px 10px;border-radius:10px;border:2px solid var(--border);text-align:center;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;background:var(--surface);}
+.pay-method-opt.sel{border-color:var(--accent);background:rgba(255,107,43,0.06);}
+.pay-btn{width:100%;padding:16px;background:var(--accent);color:white;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all 0.2s;}
+.pay-btn:hover:not(:disabled){background:#ff8c52;transform:translateY(-1px);box-shadow:0 10px 28px rgba(255,107,43,0.3);}
+.pay-btn:disabled{opacity:0.8;cursor:not-allowed;}
+.spinner-el{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
+.cart-sticky{position:fixed;bottom:0;left:0;right:0;background:var(--accent);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;z-index:100;animation:fadeUp 0.3s ease;}
+.cart-badge{width:26px;height:26px;background:white;color:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;}
+.notif{position:fixed;top:20px;right:20px;z-index:9999;padding:14px 20px;border-radius:12px;font-family:'Syne',sans-serif;font-weight:600;font-size:14px;animation:slideIn 0.3s ease;max-width:320px;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+.notif-success{background:var(--surface);border:1px solid rgba(45,206,108,0.3);color:var(--text);}
+.notif-ready{background:rgba(45,206,108,0.1);border:1px solid rgba(45,206,108,0.4);color:var(--green);}
+.notif-error{background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:var(--red);}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:90;padding:8px 0 12px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;cursor:pointer;transition:color 0.15s;color:var(--text3);border:none;background:none;}
+.nav-item.active{color:var(--accent);}
+.nav-item-icon{font-size:20px;}
+.nav-item-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.5px;}
+.admin-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;margin-top:4px;}
+.admin-input:focus{border-color:var(--accent);}
+.admin-input::placeholder{color:var(--text3);}
+.filter-pill{padding:7px 14px;border-radius:100px;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;}
+.filter-pill.active{background:rgba(255,107,43,0.1);border-color:rgba(255,107,43,0.3);color:var(--accent);}
+.action-btn{padding:7px 13px;border-radius:7px;font-size:12px;cursor:pointer;transition:all 0.15s;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif;}
+.action-btn:hover{border-color:var(--accent);color:var(--accent);}
+.status-chip{padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;}
+.chip-new{background:rgba(79,142,247,0.12);color:var(--blue);}
+.chip-confirmed{background:rgba(255,179,71,0.12);color:var(--accent2);}
+.chip-preparing{background:rgba(255,107,43,0.12);color:var(--accent);}
+.chip-ready{background:rgba(45,206,108,0.12);color:var(--green);}
+.progress-btn{background:var(--accent);color:white;padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all 0.15s;}
+.progress-btn:hover{background:#ff8c52;}
+.popular-tag{background:rgba(255,107,43,0.12);color:var(--accent2);font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,107,43,0.2);}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, createContext, useContext, useEffect, useRef } = React;
+
+// ─── DATA ───
+const MENU_ITEMS = [
+  {id:1,name:"Spicy Chicken Burger",category:"Burgers",price:149,emoji:"🍔",desc:"Crispy fried chicken with jalapeños & chipotle mayo",time:8,rating:4.8,popular:true},
+  {id:2,name:"Paneer Tikka Wrap",category:"Wraps",price:119,emoji:"🌯",desc:"Grilled paneer with mint chutney & veggies",time:6,rating:4.6,popular:true},
+  {id:3,name:"Margherita Pizza",category:"Pizza",price:199,emoji:"🍕",desc:"Fresh mozzarella, tomato basil on thin crust",time:12,rating:4.7,popular:false},
+  {id:4,name:"Veg Fried Rice",category:"Rice",price:99,emoji:"🍚",desc:"Wok-tossed rice with seasonal vegetables",time:7,rating:4.5,popular:false},
+  {id:5,name:"Chicken Biryani",category:"Rice",price:169,emoji:"🍛",desc:"Aromatic basmati with tender chicken & saffron",time:15,rating:4.9,popular:true},
+  {id:6,name:"Masala Dosa",category:"South Indian",price:79,emoji:"🫓",desc:"Crispy dosa with potato masala & coconut chutney",time:5,rating:4.7,popular:false},
+  {id:7,name:"Loaded Nachos",category:"Snacks",price:129,emoji:"🧀",desc:"Tortilla chips with cheese, salsa & sour cream",time:5,rating:4.4,popular:false},
+  {id:8,name:"Cold Coffee",category:"Drinks",price:69,emoji:"☕",desc:"Chilled coffee blended with vanilla ice cream",time:3,rating:4.6,popular:true},
+  {id:9,name:"Mango Lassi",category:"Drinks",price:59,emoji:"🥤",desc:"Fresh Alphonso mango with creamy yogurt",time:3,rating:4.8,popular:false},
+  {id:10,name:"Paneer Butter Masala",category:"Main Course",price:179,emoji:"🧆",desc:"Silky tomato gravy with fresh paneer cubes",time:10,rating:4.7,popular:true},
+  {id:11,name:"Hakka Noodles",category:"Noodles",price:109,emoji:"🍜",desc:"Indo-Chinese stir-fried noodles with veggies",time:8,rating:4.5,popular:false},
+  {id:12,name:"Brownie Sundae",category:"Desserts",price:89,emoji:"🍫",desc:"Warm chocolate brownie with vanilla ice cream",time:4,rating:4.9,popular:true},
+];
+const CATEGORIES = ["All","Burgers","Wraps","Pizza","Rice","South Indian","Snacks","Drinks","Main Course","Noodles","Desserts"];
+const INITIAL_ORDERS = [
+  {id:"CB-0041",items:[{name:"Chicken Biryani",qty:1,price:169,emoji:"🍛"},{name:"Mango Lassi",qty:2,price:59,emoji:"🥤"}],total:287,mode:"dine-in",status:"ready",time:"2 min ago",table:"T-08"},
+  {id:"CB-0042",items:[{name:"Margherita Pizza",qty:1,price:199,emoji:"🍕"},{name:"Cold Coffee",qty:1,price:69,emoji:"☕"}],total:268,mode:"takeaway",status:"preparing",time:"5 min ago",table:"T-15"},
+  {id:"CB-0043",items:[{name:"Spicy Chicken Burger",qty:2,price:149,emoji:"🍔"},{name:"Loaded Nachos",qty:1,price:129,emoji:"🧀"}],total:427,mode:"dine-in",status:"confirmed",time:"8 min ago",table:"T-03"},
+  {id:"CB-0044",items:[{name:"Masala Dosa",qty:1,price:79,emoji:"🫓"},{name:"Cold Coffee",qty:1,price:69,emoji:"☕"}],total:148,mode:"dine-in",status:"new",time:"Just now",table:"T-22"},
+];
+
+// ─── CONTEXT ───
+const Ctx = createContext();
+function AppProvider({children}) {
+  const [view, setView] = useState("landing");
+  const [cart, setCart] = useState([]);
+  const [serviceMode, setServiceMode] = useState("dine-in");
+  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [currentOrder, setCurrentOrder] = useState(null);
+  const [menu, setMenu] = useState(MENU_ITEMS);
+  const [notif, setNotif] = useState(null);
+  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
+  const timerRef = useRef(null);
+
+  const showNotif = useCallback((msg, type="success") => {
+    setNotif({msg, type});
+    setTimeout(()=>setNotif(null), 3500);
+  },[]);
+
+  const addToCart = useCallback((item)=>{
+    setCart(prev=>{
+      const ex = prev.find(c=>c.id===item.id);
+      if(ex) return prev.map(c=>c.id===item.id?{...c,qty:c.qty+1}:c);
+      return [...prev,{...item,qty:1}];
+    });
+    showNotif(item.emoji+" "+item.name+" added!");
+  },[showNotif]);
+
+  const removeFromCart = useCallback((id)=>{
+    setCart(prev=>{
+      const ex = prev.find(c=>c.id===id);
+      if(ex?.qty===1) return prev.filter(c=>c.id!==id);
+      return prev.map(c=>c.id===id?{...c,qty:c.qty-1}:c);
+    });
+  },[]);
+
+  const placeOrder = useCallback((cartSnapshot, mode)=>{
+    const orderId = "CB-"+String(Math.floor(Math.random()*9000)+1000);
+    const sub = cartSnapshot.reduce((s,i)=>s+i.price*i.qty,0);
+    const total = sub + Math.round(sub*0.05) + 18;
+    const newOrder = {id:orderId,items:cartSnapshot.map(c=>({name:c.name,qty:c.qty,price:c.price,emoji:c.emoji})),total,mode,status:"new",time:"Just now",table:"T-12"};
+    setCurrentOrder({...newOrder,stage:0,eta:15});
+    setOrders(prev=>[newOrder,...prev]);
+    setCart([]);
+    setView("tracking");
+    showNotif("🎉 Order placed successfully!");
+    if(timerRef.current) clearInterval(timerRef.current);
+    let stage=0;
+    timerRef.current = setInterval(()=>{
+      stage++;
+      setCurrentOrder(prev=>prev?{...prev,stage,eta:Math.max(0,prev.eta-4)}:prev);
+      if(stage===3){
+        clearInterval(timerRef.current);
+        showNotif("🔔 Your food is READY! Please collect your order.","ready");
+      }
+    },4000);
+  },[showNotif]);
+
+  const updateOrderStatus = useCallback((orderId, newStatus)=>{
+    setOrders(prev=>prev.map(o=>o.id===orderId?{...o,status:newStatus}:o));
+    if(newStatus==="ready") showNotif("Order "+orderId+" is Ready! Customer notified. 🔔");
+    else showNotif("Order "+orderId+" → "+newStatus);
+  },[showNotif]);
+
+  const updateMenuItem = useCallback((id,updates)=>{
+    setMenu(prev=>prev.map(item=>item.id===id?{...item,...updates}:item));
+    showNotif("Menu item updated!");
+  },[showNotif]);
+
+  const addMenuItem = useCallback((item)=>{
+    setMenu(prev=>[...prev,{...item,id:Date.now()}]);
+    showNotif("Menu item added!");
+  },[showNotif]);
+
+  const deleteMenuItem = useCallback((id)=>{
+    setMenu(prev=>prev.filter(item=>item.id!==id));
+    showNotif("Item removed from menu.");
+  },[showNotif]);
+
+  const cartTotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const cartCount = cart.reduce((s,i)=>s+i.qty,0);
+
+  return (
+    <Ctx.Provider value={{view,setView,cart,cartTotal,cartCount,serviceMode,setServiceMode,orders,currentOrder,menu,notif,adminLoggedIn,setAdminLoggedIn,addToCart,removeFromCart,placeOrder,updateOrderStatus,updateMenuItem,addMenuItem,deleteMenuItem,showNotif}}>
+      {children}
+    </Ctx.Provider>
+  );
+}
+const useApp = ()=>useContext(Ctx);
+
+// ─── QR PATTERN SVG ───
+function QRCode() {
+  const pattern = [[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,1,0,1,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]];
+  const dots = Array.from({length:36},(_,i)=>({x:55+(Math.sin(i*1.8+0.3)*16),y:55+(Math.cos(i*1.4)*16)}));
+  return (
+    <svg width="150" height="155" viewBox="0 0 150 155">
+      {pattern.map((row,r)=>row.map((cell,c)=>cell?<rect key={`tl${r}${c}`} x={8+c*8} y={8+r*8} width={7} height={7} fill="var(--text)" rx={1}/>:null))}
+      {pattern.map((row,r)=>row.map((cell,c)=>cell?<rect key={`tr${r}${c}`} x={86+c*8} y={8+r*8} width={7} height={7} fill="var(--text)" rx={1}/>:null))}
+      {pattern.map((row,r)=>row.map((cell,c)=>cell?<rect key={`bl${r}${c}`} x={8+c*8} y={86+r*8} width={7} height={7} fill="var(--text)" rx={1}/>:null))}
+      {dots.map((d,i)=><rect key={`d${i}`} x={d.x} y={d.y} width={5} height={5} fill="var(--accent)" rx={1} opacity={0.75}/>)}
+      <text x={75} y={148} textAnchor="middle" fill="var(--text3)" fontSize={9} fontFamily="DM Mono, monospace">CB-T12-ZB</text>
+    </svg>
+  );
+}
+
+// ─── LANDING ───
+function LandingPage() {
+  const {setView}=useApp();
+  const [scanning,setScanning]=useState(false);
+  const [scanned,setScanned]=useState(false);
+
+  const handleScan=()=>{
+    if(scanning||scanned) return;
+    setScanning(true);
+    setTimeout(()=>{setScanning(false);setScanned(true);},2000);
+    setTimeout(()=>setView("menu"),3000);
+  };
+
+  return (
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,textAlign:"center",position:"relative",overflow:"hidden"}}>
+      <div className="orb orb1"/><div className="orb orb2"/><div className="orb orb3"/>
+      <div style={{position:"relative",zIndex:1,maxWidth:420,width:"100%",animation:"fadeUp 0.6s ease"}}>
+        <div style={{fontSize:56,marginBottom:12}}>🍽️</div>
+        <h1 style={{fontFamily:"Syne",fontSize:"clamp(42px,10vw,64px)",fontWeight:800,letterSpacing:"-2px",marginBottom:8}}>
+          Court<span style={{color:"var(--accent)"}}>Bite</span>
+        </h1>
+        <div style={{fontFamily:"DM Mono",fontSize:12,color:"var(--accent2)",letterSpacing:3,textTransform:"uppercase",marginBottom:16}}>Smart Food Court Ordering</div>
+        <p style={{color:"var(--text3)",fontSize:14,marginBottom:40,lineHeight:1.8}}>
+          Scan the QR code at your table to browse the menu, order, and pay — no queues, no hassle.
+        </p>
+
+        {/* QR Container */}
+        <div onClick={handleScan} style={{
+          position:"relative",width:200,height:200,border:`2px solid ${scanned?"var(--green)":scanning?"var(--accent)":"var(--border)"}`,
+          borderRadius:20,margin:"0 auto 28px",overflow:"hidden",transition:"border-color 0.3s",
+          background:"var(--surface)",display:"flex",alignItems:"center",justifyContent:"center",cursor:scanned?"default":"pointer"
+        }}>
+          {scanned?(
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,animation:"popIn 0.4s ease"}}>
+              <div style={{fontSize:48}}>✅</div>
+              <div style={{color:"var(--green)",fontFamily:"Syne",fontWeight:700,fontSize:15}}>QR Scanned!</div>
+            </div>
+          ):<QRCode/>}
+          {scanning&&<div style={{position:"absolute",left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,var(--accent),transparent)",animation:"scanLine 0.8s linear infinite",zIndex:10}}/>}
+          {/* Corners */}
+          {[["top:10px","left:10px","border-top:3px solid","border-left:3px solid"],["top:10px","right:10px","border-top:3px solid","border-right:3px solid"],["bottom:10px","left:10px","border-bottom:3px solid","border-left:3px solid"],["bottom:10px","right:10px","border-bottom:3px solid","border-right:3px solid"]].map(([a,b,c,d],i)=>(
+            <div key={i} style={{position:"absolute",width:18,height:18,[a.split(":")[0]]:a.split(":")[1],[b.split(":")[0]]:b.split(":")[1],[c.split(" ")[0]]:c.split(" ")[1]+" var(--accent)",[d.split(" ")[0]]:d.split(" ")[1]+" var(--accent)",borderRadius:[0,0,0,0][i]}}/>
+          ))}
+        </div>
+
+        {!scanned?(
+          <button className="pay-btn" onClick={handleScan} disabled={scanning} style={{maxWidth:280,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+            {scanning?<><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⚙️</span>Scanning…</>:<><span>📱</span>Tap to Scan QR Code</>}
+          </button>
+        ):(
+          <p style={{color:"var(--green)",fontWeight:600,animation:"fadeUp 0.5s ease"}}>Redirecting to menu…</p>
+        )}
+
+        <div style={{marginTop:40,display:"flex",gap:24,justifyContent:"center",flexWrap:"wrap"}}>
+          {["🚀 No queues","💳 Secure pay","📍 Live tracking","🔔 Ready alerts"].map(f=>(
+            <span key={f} style={{fontSize:12,color:"var(--text3)"}}>{f}</span>
+          ))}
+        </div>
+        <button onClick={()=>setView("admin")} style={{marginTop:28,background:"none",border:"1px solid var(--border)",color:"var(--text3)",padding:"8px 20px",borderRadius:8,fontSize:12,cursor:"pointer",fontFamily:"DM Mono,monospace"}}>
+          Admin Login →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── MENU PAGE ───
+function MenuPage() {
+  const {menu,cart,cartCount,cartTotal,addToCart,removeFromCart,setView}=useApp();
+  const [cat,setCat]=useState("All");
+  const [search,setSearch]=useState("");
+
+  const filtered = menu.filter(item=>(cat==="All"||item.category===cat)&&item.name.toLowerCase().includes(search.toLowerCase()));
+  const getQty = id=>cart.find(c=>c.id===id)?.qty||0;
+
+  return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",paddingBottom:cartCount>0?80:60}}>
+      {/* Header */}
+      <div style={{background:"var(--surface)",borderBottom:"1px solid var(--border)",padding:"18px 20px",position:"sticky",top:0,zIndex:50}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+          <div style={{width:46,height:46,borderRadius:12,background:"linear-gradient(135deg,var(--accent),var(--accent2))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🍽️</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontFamily:"Syne",fontWeight:700,fontSize:16,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>CourtBite Food Court</div>
+            <div style={{fontSize:12,color:"var(--text3)"}}>📍 Table 12 — Zone B &nbsp;<span style={{color:"var(--accent2)"}}>★ 4.7</span> (2.4k)</div>
+          </div>
+          <div style={{fontFamily:"DM Mono",fontSize:10,color:"var(--text3)",background:"var(--surface2)",padding:"4px 8px",borderRadius:6,flexShrink:0}}>CB-T12</div>
+        </div>
+        <div style={{position:"relative",marginBottom:12}}>
+          <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14,pointerEvents:"none"}}>🔍</span>
+          <input className="search-input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search dishes…"/>
+        </div>
+        <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:4}}>
+          {CATEGORIES.map(c=><button key={c} onClick={()=>setCat(c)} className={`cat-pill ${cat===c?"active":""}`}>{c}</button>)}
+        </div>
+      </div>
+
+      {/* Popular */}
+      {cat==="All"&&!search&&(
+        <div style={{padding:"20px 20px 0"}}>
+          <span className="section-label">🔥 Popular Now</span>
+          <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:8}}>
+            {menu.filter(i=>i.popular).map(item=>{
+              const qty=getQty(item.id);
+              return (
+                <div key={item.id} style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:14,padding:"14px 12px",textAlign:"center",minWidth:128,transition:"all 0.2s",cursor:"pointer"}}
+                  onClick={()=>qty===0&&addToCart(item)}>
+                  <div style={{fontSize:38,marginBottom:6}}>{item.emoji}</div>
+                  <div style={{fontFamily:"Syne",fontWeight:600,fontSize:13,marginBottom:4}}>{item.name}</div>
+                  <div style={{fontSize:14,color:"var(--accent)",fontFamily:"Syne",fontWeight:700,marginBottom:10}}>₹{item.price}</div>
+                  {qty===0?<button className="pay-btn" style={{padding:"6px 14px",fontSize:12,borderRadius:8}} onClick={e=>{e.stopPropagation();addToCart(item);}}>+ Add</button>:(
+                    <div className="qty-control" style={{justifyContent:"center"}}>
+                      <button className="qty-btn" onClick={e=>{e.stopPropagation();removeFromCart(item.id);}}>−</button>
+                      <span className="qty-num">{qty}</span>
+                      <button className="qty-btn" onClick={e=>{e.stopPropagation();addToCart(item);}}>+</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Full list */}
+      <div style={{padding:"20px"}}>
+        <span className="section-label">{cat==="All"?"All Items":cat} ({filtered.length})</span>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {filtered.map(item=>{
+            const qty=getQty(item.id);
+            return (
+              <div key={item.id} style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:14,padding:16,display:"flex",gap:14,transition:"border-color 0.15s"}}>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
+                    <span style={{fontFamily:"Syne",fontWeight:600,fontSize:15}}>{item.name}</span>
+                    {item.popular&&<span className="popular-tag">🔥 Popular</span>}
+                  </div>
+                  <div style={{fontSize:13,color:"var(--text3)",marginBottom:8,lineHeight:1.5}}>{item.desc}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                    <span style={{fontFamily:"Syne",fontWeight:700,fontSize:16,color:"var(--accent)"}}>₹{item.price}</span>
+                    <span style={{fontSize:12,color:"var(--text3)"}}>⏱ {item.time} min</span>
+                    <span style={{fontSize:12,color:"var(--accent2)"}}>★ {item.rating}</span>
+                  </div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
+                  <div style={{width:68,height:68,background:"var(--surface2)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:34}}>{item.emoji}</div>
+                  {qty===0?(
+                    <button style={{background:"none",border:"1px solid var(--accent)",color:"var(--accent)",padding:"6px 14px",borderRadius:8,fontFamily:"Syne",fontSize:12,fontWeight:700,cursor:"pointer",transition:"all 0.15s"}}
+                      onMouseEnter={e=>{e.target.style.background="var(--accent)";e.target.style.color="white";}}
+                      onMouseLeave={e=>{e.target.style.background="none";e.target.style.color="var(--accent)";}}
+                      onClick={()=>addToCart(item)}>+ Add</button>
+                  ):(
+                    <div className="qty-control">
+                      <button className="qty-btn" onClick={()=>removeFromCart(item.id)}>−</button>
+                      <span className="qty-num">{qty}</span>
+                      <button className="qty-btn" onClick={()=>addToCart(item)}>+</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {filtered.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:"var(--text3)"}}><div style={{fontSize:40,marginBottom:12}}>🍽️</div>No items found</div>}
+        </div>
+      </div>
+
+      {/* Cart sticky */}
+      {cartCount>0&&(
+        <div className="cart-sticky" onClick={()=>setView("cart")}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div className="cart-badge">{cartCount}</div>
+            <span style={{fontFamily:"Syne",fontWeight:600,color:"white"}}>View Cart</span>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8,color:"white"}}>
+            <span style={{fontFamily:"Syne",fontWeight:700,fontSize:17}}>₹{cartTotal}</span>
+            <span style={{fontSize:18}}>→</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CART PAGE ───
+function CartPage() {
+  const {cart,cartTotal,serviceMode,setServiceMode,addToCart,removeFromCart,placeOrder,setView}=useApp();
+  const [payMethod,setPayMethod]=useState("upi");
+  const [paying,setPaying]=useState(false);
+  const [paid,setPaid]=useState(false);
+
+  const tax=Math.round(cartTotal*0.05);
+  const delivery=serviceMode==="takeaway"?0:18;
+  const grand=cartTotal+tax+delivery;
+
+  const handlePay=()=>{
+    setPaying(true);
+    setTimeout(()=>setPaid(true),1800);
+    setTimeout(()=>{ placeOrder([...cart],serviceMode); setPaying(false); setPaid(false); },2800);
+  };
+
+  if(cart.length===0&&!paying) return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
+      <div style={{fontSize:64}}>🛒</div>
+      <div style={{fontFamily:"Syne",fontWeight:700,fontSize:20}}>Cart is empty</div>
+      <div style={{color:"var(--text3)",fontSize:14}}>Add items from the menu to get started</div>
+      <button className="btn-primary" onClick={()=>setView("menu")}>← Browse Menu</button>
+    </div>
+  );
+
+  return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",paddingBottom:20}}>
+      <div style={{background:"var(--surface)",borderBottom:"1px solid var(--border)",padding:"18px 20px",display:"flex",alignItems:"center",gap:14,position:"sticky",top:0,zIndex:50}}>
+        <button onClick={()=>setView("menu")} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"var(--text)"}}>←</button>
+        <div style={{fontFamily:"Syne",fontWeight:700,fontSize:18}}>Your Order</div>
+        <div style={{marginLeft:"auto",fontFamily:"DM Mono",fontSize:12,color:"var(--text3)"}}>{cart.reduce((s,i)=>s+i.qty,0)} items</div>
+      </div>
+
+      <div style={{padding:20,maxWidth:560,margin:"0 auto"}}>
+        {/* Service mode */}
+        <span className="section-label">Service Mode</span>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24}}>
+          {[{id:"dine-in",label:"Dine In",icon:"🪑",desc:"Enjoy at your table"},{id:"takeaway",label:"Takeaway",icon:"🛍️",desc:"Pick up & go"}].map(opt=>(
+            <div key={opt.id} onClick={()=>setServiceMode(opt.id)} className={`service-opt ${serviceMode===opt.id?"sel":""}`}>
+              <div style={{fontSize:28,marginBottom:6}}>{opt.icon}</div>
+              <div style={{fontFamily:"Syne",fontWeight:700,fontSize:15}}>{opt.label}</div>
+              <div style={{fontSize:12,color:"var(--text3)"}}>{opt.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Items */}
+        <span className="section-label">Items</span>
+        <div style={{background:"var(--surface)",borderRadius:14,border:"1px solid var(--border)",overflow:"hidden",marginBottom:20}}>
+          {cart.map((item,idx)=>(
+            <div key={item.id} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 18px",borderBottom:idx<cart.length-1?"1px solid var(--border)":"none"}}>
+              <div style={{fontSize:26,width:42,height:42,background:"var(--surface2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{item.emoji}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontFamily:"Syne",fontWeight:600,fontSize:14}}>{item.name}</div>
+                <div style={{fontSize:12,color:"var(--text3)"}}>₹{item.price} × {item.qty}</div>
+              </div>
+              <div className="qty-control">
+                <button className="qty-btn" onClick={()=>removeFromCart(item.id)}>−</button>
+                <span className="qty-num">{item.qty}</span>
+                <button className="qty-btn" onClick={()=>addToCart(item)}>+</button>
+              </div>
+              <div style={{fontFamily:"Syne",fontWeight:700,fontSize:15,minWidth:50,textAlign:"right",color:"var(--accent)"}}>₹{item.price*item.qty}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Bill */}
+        <span className="section-label">Bill Summary</span>
+        <div style={{background:"var(--surface)",borderRadius:14,border:"1px solid var(--border)",padding:20,marginBottom:20}}>
+          {[{label:"Subtotal",val:cartTotal},{label:"GST (5%)",val:tax},{label:serviceMode==="dine-in"?"Service charge":"Packing",val:delivery}].map(r=>(
+            <div key={r.label} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",fontSize:14,color:"var(--text2)"}}>
+              <span>{r.label}</span><span>₹{r.val}</span>
+            </div>
+          ))}
+          <div style={{borderTop:"1px solid var(--border)",marginTop:10,paddingTop:14,display:"flex",justifyContent:"space-between",fontFamily:"Syne",fontWeight:800,fontSize:18}}>
+            <span>Total</span><span style={{color:"var(--accent)"}}>₹{grand}</span>
+          </div>
+        </div>
+
+        {/* Payment */}
+        <span className="section-label">Payment Method</span>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
+          {[{id:"upi",label:"UPI",icon:"📲"},{id:"card",label:"Card",icon:"💳"},{id:"cash",label:"Cash",icon:"💵"}].map(pm=>(
+            <div key={pm.id} onClick={()=>setPayMethod(pm.id)} className={`pay-method-opt ${payMethod===pm.id?"sel":""}`}>
+              <span style={{fontSize:22,display:"block",marginBottom:4}}>{pm.icon}</span>
+              <span>{pm.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <button className="pay-btn" onClick={handlePay} disabled={paying}>
+          {paid?"✅ Payment Successful!":paying?(
+            <span style={{display:"flex",alignItems:"center",gap:10,justifyContent:"center"}}>
+              <span className="spinner-el"/>Processing…
+            </span>
+          ):`Pay ₹${grand} & Place Order`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── TRACKING PAGE ───
+const STAGES=[
+  {label:"Placed",icon:"📋"},
+  {label:"Confirmed",icon:"✅"},
+  {label:"Preparing",icon:"👨‍🍳"},
+  {label:"Ready!",icon:"🎉"},
+];
+function TrackingPage() {
+  const {currentOrder,setView}=useApp();
+
+  if(!currentOrder) return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24}}>
+      <div style={{fontSize:56}}>📭</div>
+      <div style={{fontFamily:"Syne",fontWeight:700,fontSize:18}}>No active order</div>
+      <div style={{color:"var(--text3)",fontSize:14,textAlign:"center"}}>Place an order from the menu to track it here</div>
+      <button className="btn-primary" onClick={()=>setView("menu")}>Start Ordering</button>
+    </div>
+  );
+
+  const {id,items,total,mode,stage,eta}=currentOrder;
+  const isReady=stage>=3;
+
+  return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",paddingBottom:80}}>
+      <div style={{background:isReady?"var(--green)":"var(--surface)",borderBottom:"1px solid var(--border)",padding:"20px",transition:"background 0.6s"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <div style={{fontFamily:"DM Mono",fontSize:10,color:isReady?"rgba(255,255,255,0.7)":"var(--text3)",marginBottom:4}}>ORDER ID</div>
+            <div style={{fontFamily:"Syne",fontWeight:800,fontSize:20,color:isReady?"white":"var(--text)"}}>{id}</div>
+          </div>
+          <div style={{padding:"7px 16px",borderRadius:100,fontSize:12,fontWeight:700,background:isReady?"rgba(255,255,255,0.2)":"rgba(255,179,71,0.12)",color:isReady?"white":"var(--accent2)",border:`1px solid ${isReady?"rgba(255,255,255,0.3)":"rgba(255,179,71,0.25)"}`,display:"flex",alignItems:"center",gap:6}}>
+            <span style={{width:6,height:6,borderRadius:"50%",background:"currentColor",animation:"pulse 1.5s infinite",display:"inline-block"}}/>
+            {isReady?"🎉 Ready!":stage===2?"👨‍🍳 Preparing":stage===1?"✅ Confirmed":"📋 Placed"}
+          </div>
+        </div>
+      </div>
+
+      <div style={{padding:"28px 20px",maxWidth:520,margin:"0 auto"}}>
+        {/* Progress */}
+        <div style={{position:"relative",marginBottom:36}}>
+          <div style={{position:"absolute",top:18,left:"12%",right:"12%",height:3,background:"var(--border)",borderRadius:2}}/>
+          <div style={{position:"absolute",top:18,left:"12%",height:3,background:"var(--green)",borderRadius:2,width:`${(stage/3)*76}%`,transition:"width 1s ease"}}/>
+          <div style={{display:"flex",justifyContent:"space-between",position:"relative"}}>
+            {STAGES.map((s,i)=>(
+              <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,flex:1}}>
+                <div style={{
+                  width:38,height:38,borderRadius:"50%",
+                  background:i<stage?"var(--green)":i===stage?"var(--accent2)":"var(--surface2)",
+                  border:`3px solid ${i<stage?"var(--green)":i===stage?"var(--accent2)":"var(--border)"}`,
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,
+                  transition:"all 0.5s",
+                  boxShadow:i===stage?"0 0 0 6px rgba(255,179,71,0.15)":"none",
+                  animation:i===stage?"pulse 2s infinite":"none",
+                  zIndex:1,position:"relative",
+                }}>{s.icon}</div>
+                <div style={{fontSize:11,color:i<=stage?"var(--text)":"var(--text3)",textAlign:"center",fontWeight:i===stage?600:400,lineHeight:1.3}}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ETA / Ready */}
+        {!isReady?(
+          <div style={{background:"rgba(79,142,247,0.07)",border:"1px solid rgba(79,142,247,0.18)",borderRadius:14,padding:20,display:"flex",alignItems:"center",gap:16,marginBottom:24}}>
+            <span style={{fontSize:32}}>⏱</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,color:"var(--text3)",marginBottom:2}}>Estimated Wait</div>
+              <div style={{fontFamily:"Syne",fontWeight:800,fontSize:28,color:"var(--blue)"}}>{eta} min</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:12,color:"var(--text3)"}}>Mode</div>
+              <div style={{fontFamily:"Syne",fontWeight:600,fontSize:14}}>{mode==="dine-in"?"🪑 Dine In":"🛍️ Takeaway"}</div>
+            </div>
+          </div>
+        ):(
+          <div style={{background:"rgba(45,206,108,0.07)",border:"1px solid rgba(45,206,108,0.25)",borderRadius:14,padding:24,textAlign:"center",marginBottom:24,animation:"popIn 0.5s ease"}}>
+            <div style={{fontSize:40,marginBottom:8}}>🎉</div>
+            <div style={{fontFamily:"Syne",fontWeight:800,fontSize:20,color:"var(--green)",marginBottom:6}}>Your Order is Ready!</div>
+            <div style={{fontSize:14,color:"var(--text2)"}}>{mode==="dine-in"?"Your food is being served at your table":"Please collect your order from the counter"}</div>
+          </div>
+        )}
+
+        {/* Order items */}
+        <div style={{background:"var(--surface)",borderRadius:14,border:"1px solid var(--border)",padding:20,marginBottom:16}}>
+          <span className="section-label">Order Summary</span>
+          {items.map((item,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<items.length-1?"1px solid var(--border)":"none"}}>
+              <div style={{fontSize:22,width:36,height:36,background:"var(--surface2)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{item.emoji}</div>
+              <div style={{flex:1,fontFamily:"Syne",fontWeight:600,fontSize:14}}>{item.name}</div>
+              <div style={{fontSize:13,color:"var(--text3)"}}>×{item.qty}</div>
+              <div style={{fontFamily:"Syne",fontWeight:700,fontSize:14,color:"var(--accent)"}}>₹{item.price*item.qty}</div>
+            </div>
+          ))}
+          <div style={{paddingTop:14,display:"flex",justifyContent:"space-between",fontFamily:"Syne",fontWeight:800,fontSize:17}}>
+            <span>Total Paid</span><span style={{color:"var(--accent)"}}>₹{total}</span>
+          </div>
+        </div>
+
+        <button style={{width:"100%",padding:14,background:"var(--surface)",border:"1px solid var(--border)",color:"var(--text2)",borderRadius:10,fontFamily:"Syne",fontSize:14,fontWeight:600,cursor:"pointer"}} onClick={()=>setView("menu")}>
+          + Order More Items
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── ADMIN PAGE ───
+const STATUS_FLOW={new:"confirmed",confirmed:"preparing",preparing:"ready"};
+const STATUS_LABELS={new:"New",confirmed:"Confirmed",preparing:"Preparing",ready:"Ready"};
+
+function AdminPage() {
+  const {adminLoggedIn,setAdminLoggedIn,orders,updateOrderStatus,menu,updateMenuItem,addMenuItem,deleteMenuItem,setView,showNotif}=useApp();
+  const [tab,setTab]=useState("orders");
+  const [loginData,setLoginData]=useState({user:"",pass:""});
+  const [filterStatus,setFilterStatus]=useState("all");
+  const [editItem,setEditItem]=useState(null);
+  const [editValues,setEditValues]=useState({});
+  const [addMode,setAddMode]=useState(false);
+  const [newItem,setNewItem]=useState({name:"",category:"",price:"",emoji:"🍽️",desc:"",time:"8"});
+
+  if(!adminLoggedIn) return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{width:"100%",maxWidth:380}}>
+        <div style={{textAlign:"center",marginBottom:32,animation:"fadeUp 0.5s ease"}}>
+          <div style={{fontSize:48,marginBottom:12}}>🔐</div>
+          <h2 style={{fontFamily:"Syne",fontWeight:800,fontSize:26,letterSpacing:-1}}>Admin Login</h2>
+          <p style={{color:"var(--text3)",fontSize:13,marginTop:6}}>CourtBite Management Portal</p>
+        </div>
+        <div style={{background:"var(--surface)",borderRadius:16,border:"1px solid var(--border)",padding:28,animation:"fadeUp 0.5s 0.1s ease both"}}>
+          <div style={{marginBottom:14}}>
+            <label style={{fontSize:11,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,display:"block",marginBottom:4}}>USERNAME</label>
+            <input className="admin-input" value={loginData.user} onChange={e=>setLoginData(p=>({...p,user:e.target.value}))} placeholder="admin" type="text"/>
+          </div>
+          <div style={{marginBottom:24}}>
+            <label style={{fontSize:11,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,display:"block",marginBottom:4}}>PASSWORD</label>
+            <input className="admin-input" value={loginData.pass} onChange={e=>setLoginData(p=>({...p,pass:e.target.value}))} placeholder="••••••••" type="password"
+              onKeyDown={e=>e.key==="Enter"&&(loginData.user==="admin"&&loginData.pass==="admin123"?setAdminLoggedIn(true):showNotif("Invalid credentials","error"))}/>
+          </div>
+          <button className="pay-btn" onClick={()=>{
+            if(loginData.user==="admin"&&loginData.pass==="admin123") setAdminLoggedIn(true);
+            else showNotif("Invalid credentials. Use admin / admin123","error");
+          }}>Login to Dashboard</button>
+          <p style={{textAlign:"center",marginTop:14,fontSize:12,color:"var(--text3)"}}>Credentials: <strong>admin</strong> / <strong>admin123</strong></p>
+        </div>
+        <button onClick={()=>setView("landing")} style={{display:"block",margin:"20px auto 0",background:"none",border:"none",color:"var(--text3)",fontSize:13,cursor:"pointer"}}>← Back</button>
+      </div>
+    </div>
+  );
+
+  const filteredOrders = filterStatus==="all"?orders:orders.filter(o=>o.status===filterStatus);
+  const revenue = orders.reduce((s,o)=>s+o.total,0);
+
+  return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",flexDirection:"column"}}>
+      {/* Top bar */}
+      <div style={{background:"var(--surface)",borderBottom:"1px solid var(--border)",padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{width:38,height:38,borderRadius:10,background:"linear-gradient(135deg,var(--accent),var(--accent2))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🍽️</div>
+          <div>
+            <div style={{fontFamily:"Syne",fontWeight:700,fontSize:15}}>CourtBite Admin</div>
+            <div style={{fontSize:10,color:"var(--text3)",fontFamily:"DM Mono,monospace"}}>Management Dashboard</div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={()=>setView("menu")} style={{background:"var(--surface2)",border:"1px solid var(--border)",color:"var(--text2)",padding:"7px 14px",borderRadius:8,fontSize:12,cursor:"pointer"}}>Customer View</button>
+          <button onClick={()=>setAdminLoggedIn(false)} style={{background:"rgba(255,71,87,0.1)",border:"1px solid rgba(255,71,87,0.2)",color:"var(--red)",padding:"7px 14px",borderRadius:8,fontSize:12,cursor:"pointer"}}>Logout</button>
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",borderBottom:"1px solid var(--border)"}}>
+        {[
+          {label:"Today's Orders",val:orders.length,icon:"📋",color:"var(--blue)"},
+          {label:"Revenue",val:"₹"+revenue,icon:"💰",color:"var(--green)"},
+          {label:"In Progress",val:orders.filter(o=>o.status!=="ready").length,icon:"👨‍🍳",color:"var(--accent2)"},
+          {label:"Completed",val:orders.filter(o=>o.status==="ready").length,icon:"✅",color:"var(--green)"},
+        ].map((k,i)=>(
+          <div key={i} style={{padding:"18px 20px",borderRight:i<3?"1px solid var(--border)":"none",background:"var(--surface)"}}>
+            <div style={{fontSize:10,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,marginBottom:8}}>{k.label.toUpperCase()}</div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:22}}>{k.icon}</span>
+              <span style={{fontFamily:"Syne",fontWeight:800,fontSize:22,color:k.color}}>{k.val}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div style={{borderBottom:"1px solid var(--border)",background:"var(--surface)",padding:"0 24px",display:"flex",gap:4}}>
+        {[{id:"orders",label:"📋 Live Orders"},{id:"menu",label:"🍽️ Manage Menu"},{id:"transactions",label:"💳 Transactions"}].map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"14px 18px",background:"none",border:"none",borderBottom:tab===t.id?"2px solid var(--accent)":"2px solid transparent",color:tab===t.id?"var(--accent)":"var(--text2)",fontFamily:"Syne",fontWeight:600,fontSize:14,cursor:"pointer",transition:"all 0.15s"}}>{t.label}</button>
+        ))}
+      </div>
+
+      <div style={{padding:24,overflowY:"auto",flex:1}}>
+        {/* ORDERS TAB */}
+        {tab==="orders"&&(
+          <div>
+            <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+              {["all","new","confirmed","preparing","ready"].map(s=>(
+                <button key={s} onClick={()=>setFilterStatus(s)} className={`filter-pill ${filterStatus===s?"active":""}`}>
+                  {s==="all"?"All Orders":STATUS_LABELS[s]}
+                  <span style={{background:"var(--surface2)",padding:"1px 7px",borderRadius:100,fontSize:11,fontFamily:"DM Mono,monospace"}}>{s==="all"?orders.length:orders.filter(o=>o.status===s).length}</span>
+                </button>
+              ))}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {filteredOrders.map(order=>{
+                const canProgress=order.status!=="ready";
+                const nextLabels={new:"Mark Confirmed",confirmed:"Start Preparing",preparing:"Mark Ready 🔔"};
+                const sColor={new:"var(--blue)",confirmed:"var(--accent2)",preparing:"var(--accent)",ready:"var(--green)"};
+                return (
+                  <div key={order.id} style={{background:"var(--surface)",border:`1px solid ${order.status==="ready"?"rgba(45,206,108,0.3)":"var(--border)"}`,borderRadius:14,padding:"18px 20px"}}>
+                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
+                      <div>
+                        <div style={{fontFamily:"DM Mono,monospace",fontSize:10,color:"var(--text3)",marginBottom:3}}>ORDER</div>
+                        <div style={{fontFamily:"Syne",fontWeight:700,fontSize:16}}>{order.id}</div>
+                      </div>
+                      <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                        <span style={{fontSize:12,color:"var(--text3)"}}>{order.time}</span>
+                        <span style={{padding:"5px 12px",borderRadius:100,fontSize:12,fontWeight:700,background:sColor[order.status]+"20",color:sColor[order.status],border:`1px solid ${sColor[order.status]}40`}}>{STATUS_LABELS[order.status]}</span>
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+                      {order.items.map((item,i)=>(
+                        <div key={i} style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"6px 12px",fontSize:13}}>{item.emoji} {item.name} ×{item.qty}</div>
+                      ))}
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+                      <div style={{display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+                        <span style={{fontSize:13}}>{order.mode==="dine-in"?"🪑 Dine In":"🛍️ Takeaway"} · {order.table}</span>
+                        <span style={{fontFamily:"Syne",fontWeight:700,fontSize:15,color:"var(--accent)"}}>₹{order.total}</span>
+                      </div>
+                      {canProgress?<button className="progress-btn" onClick={()=>updateOrderStatus(order.id,STATUS_FLOW[order.status])}>{nextLabels[order.status]}</button>:
+                        <span style={{fontSize:13,color:"var(--green)",fontWeight:600}}>✅ Customer Notified</span>}
+                    </div>
+                  </div>
+                );
+              })}
+              {filteredOrders.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:"var(--text3)"}}><div style={{fontSize:40,marginBottom:12}}>📭</div>No orders</div>}
+            </div>
+          </div>
+        )}
+
+        {/* MENU TAB */}
+        {tab==="menu"&&(
+          <div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <div style={{fontFamily:"Syne",fontWeight:700,fontSize:18}}>Menu Items ({menu.length})</div>
+              <button className="btn-primary" style={{fontSize:13,padding:"9px 18px"}} onClick={()=>setAddMode(true)}>+ Add Item</button>
+            </div>
+            {addMode&&(
+              <div style={{background:"var(--surface)",border:"1px solid var(--accent)",borderRadius:14,padding:22,marginBottom:20,animation:"fadeUp 0.3s ease"}}>
+                <div style={{fontFamily:"Syne",fontWeight:700,marginBottom:16,fontSize:16}}>Add New Item</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+                  {[{key:"name",label:"Item Name",ph:"Butter Chicken"},{key:"category",label:"Category",ph:"Main Course"},{key:"price",label:"Price (₹)",ph:"199",type:"number"},{key:"emoji",label:"Emoji",ph:"🍗"},{key:"time",label:"Prep Time (min)",ph:"12",type:"number"}].map(f=>(
+                    <div key={f.key}>
+                      <label style={{fontSize:10,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,display:"block",marginBottom:2}}>{f.label.toUpperCase()}</label>
+                      <input className="admin-input" value={newItem[f.key]} onChange={e=>setNewItem(p=>({...p,[f.key]:e.target.value}))} placeholder={f.ph} type={f.type||"text"}/>
+                    </div>
+                  ))}
+                </div>
+                <div style={{marginBottom:16}}>
+                  <label style={{fontSize:10,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,display:"block",marginBottom:2}}>DESCRIPTION</label>
+                  <input className="admin-input" value={newItem.desc} onChange={e=>setNewItem(p=>({...p,desc:e.target.value}))} placeholder="Short description"/>
+                </div>
+                <div style={{display:"flex",gap:10}}>
+                  <button className="btn-primary" style={{fontSize:13}} onClick={()=>{
+                    if(!newItem.name||!newItem.price){showNotif("Name and price required","error");return;}
+                    addMenuItem({...newItem,price:parseInt(newItem.price)||0,time:parseInt(newItem.time)||8,rating:4.5,popular:false});
+                    setNewItem({name:"",category:"",price:"",emoji:"🍽️",desc:"",time:"8"});
+                    setAddMode(false);
+                  }}>Add to Menu</button>
+                  <button className="btn-secondary" onClick={()=>setAddMode(false)}>Cancel</button>
+                </div>
+              </div>
+            )}
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {menu.map(item=>(
+                <div key={item.id} style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+                  <div style={{fontSize:26,width:44,height:44,background:"var(--surface2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{item.emoji}</div>
+                  {editItem===item.id?(
+                    <div style={{flex:1,display:"flex",gap:10,flexWrap:"wrap",minWidth:0}}>
+                      <input className="admin-input" defaultValue={item.name} id={`en-${item.id}`} style={{flex:"1 1 120px",margin:0}}/>
+                      <input className="admin-input" defaultValue={item.price} id={`ep-${item.id}`} type="number" style={{width:80,margin:0}}/>
+                      <input className="admin-input" defaultValue={item.time} id={`et-${item.id}`} type="number" style={{width:70,margin:0}}/>
+                    </div>
+                  ):(
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontFamily:"Syne",fontWeight:600,fontSize:14}}>{item.name}</div>
+                      <div style={{fontSize:12,color:"var(--text3)"}}>{item.category} · ⏱ {item.time} min</div>
+                    </div>
+                  )}
+                  <div style={{fontFamily:"Syne",fontWeight:700,color:"var(--accent)",fontSize:15,flexShrink:0}}>₹{item.price}</div>
+                  <div style={{display:"flex",gap:8,flexShrink:0}}>
+                    {editItem===item.id?(
+                      <>
+                        <button className="action-btn" style={{borderColor:"var(--green)",color:"var(--green)"}} onClick={()=>{
+                          updateMenuItem(item.id,{name:document.getElementById(`en-${item.id}`).value,price:parseInt(document.getElementById(`ep-${item.id}`).value)||item.price,time:parseInt(document.getElementById(`et-${item.id}`).value)||item.time});
+                          setEditItem(null);
+                        }}>✓ Save</button>
+                        <button className="action-btn" onClick={()=>setEditItem(null)}>✕</button>
+                      </>
+                    ):(
+                      <>
+                        <button className="action-btn" onClick={()=>{setEditItem(item.id);setEditValues({name:item.name,price:item.price,time:item.time});}}>✏️ Edit</button>
+                        <button className="action-btn" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>deleteMenuItem(item.id)}>🗑️</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TRANSACTIONS TAB */}
+        {tab==="transactions"&&(
+          <div>
+            <div style={{fontFamily:"Syne",fontWeight:700,fontSize:18,marginBottom:20}}>Transaction History</div>
+            <div style={{background:"var(--surface)",borderRadius:14,border:"1px solid var(--border)",overflow:"hidden"}}>
+              <div style={{display:"grid",gridTemplateColumns:"120px 1fr 80px 90px 100px",gap:10,padding:"12px 18px",borderBottom:"1px solid var(--border)",background:"var(--surface2)"}}>
+                {["Order ID","Items","Mode","Amount","Status"].map(h=>(
+                  <div key={h} style={{fontSize:10,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1}}>{h.toUpperCase()}</div>
+                ))}
+              </div>
+              {orders.map((order,i)=>(
+                <div key={order.id} style={{display:"grid",gridTemplateColumns:"120px 1fr 80px 90px 100px",gap:10,padding:"14px 18px",borderBottom:i<orders.length-1?"1px solid var(--border)":"none",alignItems:"center"}}>
+                  <div style={{fontFamily:"DM Mono,monospace",fontSize:12,color:"var(--accent)"}}>{order.id}</div>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{order.items.map(i=>i.name).join(", ")}</div>
+                    <div style={{fontSize:11,color:"var(--text3)"}}>{order.time}</div>
+                  </div>
+                  <div style={{fontSize:12}}>{order.mode==="dine-in"?"🪑 Dine-in":"🛍️ Takeaway"}</div>
+                  <div style={{fontFamily:"Syne",fontWeight:700,fontSize:14,color:"var(--green)"}}>₹{order.total}</div>
+                  <div className={`status-chip chip-${order.status}`}>{STATUS_LABELS[order.status]}</div>
+                </div>
+              ))}
+            </div>
+            {/* Revenue summary */}
+            <div style={{marginTop:20,background:"var(--surface)",border:"1px solid var(--border)",borderRadius:14,padding:20,display:"flex",gap:24,flexWrap:"wrap"}}>
+              <div><div style={{fontSize:11,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,marginBottom:6}}>TOTAL REVENUE</div><div style={{fontFamily:"Syne",fontWeight:800,fontSize:24,color:"var(--green)"}}>₹{revenue}</div></div>
+              <div><div style={{fontSize:11,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,marginBottom:6}}>TOTAL ORDERS</div><div style={{fontFamily:"Syne",fontWeight:800,fontSize:24,color:"var(--blue)"}}>{orders.length}</div></div>
+              <div><div style={{fontSize:11,color:"var(--text3)",fontFamily:"DM Mono,monospace",letterSpacing:1,marginBottom:6}}>AVG ORDER VALUE</div><div style={{fontFamily:"Syne",fontWeight:800,fontSize:24,color:"var(--accent2)"}}>₹{Math.round(revenue/orders.length)}</div></div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── NOTIFICATION ───
+function Notification() {
+  const {notif}=useApp();
+  if(!notif) return null;
+  return (
+    <div className={`notif notif-${notif.type||"success"}`}>
+      {notif.msg}
+    </div>
+  );
+}
+
+// ─── APP ───
+function App() {
+  const {view,setView,cartCount}=useApp();
+  const showNav=["menu","cart","tracking"].includes(view);
+
+  return (
+    <div>
+      <Notification/>
+      {view==="landing"&&<LandingPage/>}
+      {view==="menu"&&<MenuPage/>}
+      {view==="cart"&&<CartPage/>}
+      {view==="tracking"&&<TrackingPage/>}
+      {view==="admin"&&<AdminPage/>}
+      {showNav&&(
+        <div className="bottom-nav">
+          {[{id:"menu",icon:"🍽️",label:"MENU"},{id:"cart",icon:"🛒",label:`CART${cartCount>0?" ("+cartCount+")":""}`},{id:"tracking",icon:"📍",label:"TRACK"}].map(item=>(
+            <button key={item.id} className={`nav-item ${view===item.id?"active":""}`} onClick={()=>setView(item.id)}>
+              <span className="nav-item-icon">{item.icon}</span>
+              <span className="nav-item-label">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<AppProvider><App/></AppProvider>);
+</script>
+</body>
+</html>
